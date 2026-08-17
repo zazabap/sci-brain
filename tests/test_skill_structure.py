@@ -297,3 +297,99 @@ def test_no_lingering_review_writer_references():
         str(p.relative_to(ROOT)) for p in scanned if "review-writer" in p.read_text()
     ]
     assert offenders == [], f"stale review-writer references: {offenders}"
+
+
+# ---- repro-check (issue #41: third-party reproducibility review) ----
+
+def test_repro_check_exists_with_frontmatter():
+    text = _read("repro-check")
+    assert text.startswith("---")
+    front = text.split("---")[1]
+    assert "name: repro-check" in front
+    assert "Use when" in front
+
+
+def test_repro_check_accepts_arxiv_and_pdf_inputs():
+    text = _read("repro-check")
+    assert "arXiv" in text
+    assert "PDF" in text or "pdf" in text
+
+
+def test_repro_check_has_two_audit_levels():
+    # Level 1 = static disclosure audit (no execution); Level 2 = gated execution.
+    text = _read("repro-check")
+    assert "Level 1" in text
+    assert "Level 2" in text
+
+
+def test_repro_check_disclosure_classes():
+    # The (a) stated / (b) delegated-recoverable / (c) undisclosed scheme.
+    text = _read("repro-check")
+    for marker in ("(a)", "(b)", "(c)"):
+        assert marker in text
+    assert "undisclosed" in text.lower()
+
+
+def test_repro_check_verdict_vocabulary():
+    text = _read("repro-check")
+    for verdict in (
+        "REPRODUCED-EXACT",
+        "REPRODUCED",
+        "PARTIAL",
+        "MISMATCH",
+        "BLOCKED",
+        "NOT-ATTEMPTED",
+    ):
+        assert verdict in text
+
+
+def test_repro_check_match_policy_before_comparison():
+    # Tolerance policy must be declared before outputs are seen, never after.
+    text = _read("repro-check")
+    assert "exact" in text and "tolerance" in text and "statistical" in text
+    assert "before" in text.lower()
+
+
+def test_repro_check_is_report_only_and_pins_commits():
+    text = _read("repro-check")
+    assert "never edit" in text.lower()
+    assert "commit hash" in text.lower()
+
+
+def test_repro_check_execution_is_gated_and_budgeted():
+    # Level 2 runs third-party code only with consent, isolation, and a budget.
+    text = _read("repro-check")
+    assert "consent" in text.lower() or "confirm" in text.lower()
+    assert "budget" in text.lower()
+    assert "isolat" in text.lower()
+
+
+def test_repro_check_ships_checklist_and_report_template():
+    assert (SKILLS / "repro-check" / "checklist.md").exists()
+    assert (SKILLS / "repro-check" / "report-template.md").exists()
+    text = _read("repro-check")
+    assert "checklist.md" in text
+    assert "report-template.md" in text
+
+
+def test_repro_check_reuses_download_ref_for_acquisition():
+    text = _read("repro-check")
+    assert "download-ref" in text
+
+
+def test_repro_check_report_lands_in_docs_repro():
+    text = _read("repro-check")
+    assert "docs/repro/" in text
+
+
+def test_repro_check_registered_in_readme_and_claude_md():
+    readme = (ROOT / "README.md").read_text()
+    claude = (ROOT / "CLAUDE.md").read_text()
+    assert "repro-check" in readme
+    assert "repro-check" in claude
+
+
+def test_repro_check_distinct_from_paper_reviewer():
+    # Scope note must route manuscript-prose review elsewhere.
+    text = _read("repro-check")
+    assert "paper-reviewer" in text

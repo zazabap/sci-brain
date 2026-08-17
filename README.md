@@ -65,6 +65,7 @@ If you ran `/survey` first, the brainstorm automatically picks up the knowledge 
 |-------|--------------|
 | `/paper-writer` | Draft a real manuscript: figures first → telegram outline → body → polish |
 | `/paper-reviewer` | Review an existing manuscript against writing guidelines; verifies references |
+| `/repro-check` | Third-party reproducibility review of a paper: disclosure audit, then gated re-execution of its tables/figures from the declared artifacts |
 | `/slide-writer` | Build Typst + Touying slide decks from a browsable theme/layout/gadget zoo |
 | `/figure-taste` | Score a figure's visual design against an 18-rule rubric |
 | `/flow` | Autonomous deep-thinker that attacks one hard goal via a search loop |
